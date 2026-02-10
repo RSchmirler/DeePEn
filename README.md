@@ -34,10 +34,10 @@ To run those notebooks, please refer to the requirements mentioned [here](models
 
 ## Further Analysis
 
-All analysis methods avaialble in this repo are described in detail in this notebook(notebooks/analyse.ipynb)
+All analysis methods avaialble in this repo are described in detail in this [notebook](notebooks/analyse.ipynb)
 We also provide a step by step explanation on how to add new models (or DMS datasets)  
 
-##License
+## License
    
 The data in this repository is released under terms of the [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).
 
