@@ -1,9 +1,8 @@
 # DeePEn - A Depth sensitive Protein Engineering benchmark
 This repository provides a protein fitness prediction benchmark focused on mutational depth.
 
+# ? Preprint coming soon
 &nbsp;
-
-# **? Preprint coming soon**
 
 <!-- The associated preprint can be found [here](biorxiv link) -->
 
