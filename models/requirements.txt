@@ -1,0 +1,14 @@
+torch
+torchvision
+torchaudio
+transformers
+peft
+datasets
+biopython
+scipy
+matplotlib
+scikit-learn
+evaluate
+seaborn
+openpyxl
+sentencepiece

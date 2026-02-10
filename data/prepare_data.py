@@ -63,8 +63,13 @@ for f in files:
                 pos = int(mutation[1:-1])
                 mutated_aa = mutation[-1]
 
-                # Apply mutation to the wildtype sequence
-                sequence[pos - 1] = mutated_aa  # Adjusting for 0-based index
+                if sequence[pos - 1] == original_aa:
+                    # Apply mutation to the wildtype sequence
+                    sequence[pos - 1] = mutated_aa  # Adjusting for 0-based index
+                else:
+                    print("Substitution not matching original sequence at postion", pos, original_aa, "expected, but found", sequence[pos - 1])     
+
+
             return ''.join(sequence)
 
         # Create a new DataFrame with restored sequences
