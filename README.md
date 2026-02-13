@@ -18,6 +18,8 @@ This requires [pandas](https://pandas.pydata.org/docs/getting_started/install.ht
 python data/prepare_data.py
 ```
 
+Datasplits are also available as :hugs: HuggingFace dataset [here](https://huggingface.co/datasets/RobSchmi/DeePEn)
+
 ## Results 
 
 All results for our study can be found in [/results](results), split into main and SOM (Supporting Online Material)
@@ -34,7 +36,7 @@ To run those notebooks, please refer to the requirements mentioned [here](models
 
 ## Further Analysis
 
-All analysis methods avaialble in this repo are described in detail in this [notebook](notebooks/analyse.ipynb)
+All analysis methods available in this repo are described in detail in this [notebook](notebooks/analyse.ipynb)
 We also provide a step by step explanation on how to add new models (or DMS datasets)  
 
 ## License
