@@ -18,25 +18,26 @@ This requires [pandas](https://pandas.pydata.org/docs/getting_started/install.ht
 python data/prepare_data.py
 ```
 
-Datasplits are also available as :hugs: HuggingFace dataset [here](https://huggingface.co/datasets/RobSchmi/DeePEn)
+Datasplits are also available as :hugs: HuggingFace dataset [here](https://huggingface.co/datasets/RobSchmi/DeePEn).
 
 ## Results 
 
-All results for our study can be found in [/results](results), split into main and SOM (Supporting Online Material)
+All results for our study can be found in [/results](results), split into main and SOM (Supporting Online Material).
 
 All display items and analysis relevant for the manuscript can be reproduced by running the [main](notebooks/create_display_items_main.ipynb) and [SOM](notebooks/create_display_items_SOM.ipynb) notebooks.
-To run those notebooks, please refer to the required python environment [here](notebooks) 
+To run those notebooks, please refer to the required python environment [here](notebooks). 
 
 
 ## Models
 
 Training and inference code and checkpoints for LoRA fine-tuned and evo-tuned ProtT5 models are made available.
-To run those notebooks, please refer to the requirements mentioned [here](models)
+To run those notebooks, please refer to the requirements mentioned [here](models).
 
 
 ## Further Analysis
 
-All analysis methods available in this repo are described in detail in this [notebook](notebooks/analyse.ipynb)
+All analysis methods available in this repo are described in detail in this [notebook](notebooks/analyse.ipynb).
+
 We also provide a step by step explanation on how to add new models (or DMS datasets)  
 
 ## License
