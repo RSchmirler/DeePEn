@@ -1,11 +1,15 @@
 import numpy as np
 import pandas as pd
+import math
 from scipy import stats
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 from matplotlib.pyplot import cm
+from matplotlib.patches import Patch
+from matplotlib.legend_handler import HandlerTuple
+from matplotlib.lines import Line2D
 
 from DeePEn_evaluate import calc_metric_depth
 
@@ -29,7 +33,7 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
     
     if colors == None:
         colors = ["slategrey",
-                  "grey",
+                  "#875F59",
                  "darkgreen",
                   "olive",
                  "orangered",
@@ -89,11 +93,16 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
             dfs.append(df_concat)
             dfs_tail.append(df_concat_tail)
         df_metric.append((dfs,dfs_tail))
-        
-    random_baselines = pd.read_csv("./results/main/random_baseline/DeePEn_Table_1_float.csv")
+
+    if sorted(datas) == sorted(['CAPSD_AAV2S_Sinai_2021', 'GFP_AEQVI_Sarkisyan_2016', 'HIS7_YEAST_Pokusaeva_2019', 'PHOT_CHLRE_Chen_2023']):
+        random_baselines = pd.read_csv("./results/main/random_baseline/DeePEn_Table_1_float.csv")
+    elif (len(datas) == 1) and datas[0] in ['CAPSD_AAV2S_Sinai_2021', 'GFP_AEQVI_Sarkisyan_2016', 'HIS7_YEAST_Pokusaeva_2019', 'PHOT_CHLRE_Chen_2023']:
+        random_baselines = pd.read_csv("./results/main/random_baseline/" + datas[0] + "_only_float.csv")
+    else:
+        random_baselines = pd.DataFrame(columns=['method', 'depth'])
 
     # Initialize the figure and subplots
-    fig, axes = plt.subplots(1, len(metric), figsize=(5 * len(metric) , 6),dpi=300) 
+    fig, axes = plt.subplots(1, len(metric), figsize=(4 * len(metric) , 4),dpi=300) 
     
     offset = 0.15
     width = 0.2
@@ -122,13 +131,14 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
         
         dfs =  df_metric[k][0]                                             
         dfs_tail =  df_metric[k][1]
-        # Initialize list for legend patches
-        legend_patches = []
         
         if not  met == "spearman_func":
-            ax.axhline(float(random_baselines[random_baselines.method=="random_baseline"][met][0].split(" ")[0]), color='grey', linestyle='--')
-            ax.axhline(float(random_baselines[random_baselines.method=="random_baseline"][met][1].split(" ")[0]), color='black', linestyle='--')
-
+            try:
+                ax.axhline(float(random_baselines[random_baselines.method=="random_baseline"][met].iloc[0].split(" ")[0]), color='grey', linestyle='dashdot', linewidth=1)
+                ax.axhline(float(random_baselines[random_baselines.method=="random_baseline"][met].iloc[1].split(" ")[0]), color='black', linestyle='--', linewidth=1)
+            except (IndexError, KeyError):
+                print(f'random_baselines for metric {met} are missing')
+                
         for idx, (df, tail, name, color) in enumerate(zip(dfs, dfs_tail, names, colors)):
             # Create a boxplot for both subplots
             col = 'value'
@@ -157,30 +167,50 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
             for patch in bp1['boxes']:
                 patch.set(facecolor=color_2)
 
-            plt.setp(bp0["fliers"], markersize=5, markeredgecolor=color_1, markerfacecolor='none',markeredgewidth=overall_linewidth*0.8)    
-            plt.setp(bp1["fliers"], markersize=5, markeredgecolor=color_2, markerfacecolor='none',markeredgewidth=overall_linewidth*0.8)
+            plt.setp(bp0["fliers"], markersize=4, markeredgecolor=color_1, markerfacecolor='none',markeredgewidth=overall_linewidth*0.8)    
+            plt.setp(bp1["fliers"], markersize=4, markeredgecolor=color_2, markerfacecolor='none',markeredgewidth=overall_linewidth*0.8)
 
-            # Append a new patch to the legend_patches list for each name and color
-            legend_patches.append(mpatches.Patch(color=color, label=name))
-
-        # Set x-ticks and labels for both subplots
+            
+        # Set y-lim
         ax.set_ylim(0, 1)
+
         # Add horizontal grid lines
         ax.grid(axis='y', linestyle='--', alpha=0.7, linewidth=overall_linewidth)
 
-        # Set x-ticks on the upper edge of the second subplot
-        ax.set_xticks([])
+        # Set x-ticks
+        ax.set_xticks(range(len(names)))
+        ax.set_xticklabels(names, rotation=90)
         
-        # Have y-ticks only for the first subplot
+        # Have y-ticks labels only for the first subplot
         if k > 0:
             ax.set_yticklabels([])            
 
         ax.set_title(met)
- 
-    # Create the legend on the plot
-    fig.legend(handles=legend_patches, loc='lower center', bbox_to_anchor=(0.5, -0.1), 
-          ncol=np.ceil(len(methods) / 4).astype(int), title="Models")
+        
+    # Create pairs of patches and merged labels
+    if colors[0] == "slategrey":
+        handles = []
+        merged_labels = ["Baselines", "Mave-NN", "PT5-LoRA", "PT5-Embedding", "METL"]
+        for i in range(0, len(colors), 2):
+            patch1 = Patch(color=colors[i])
+            patch2 = Patch(color=colors[i+1])
+            handles.append((patch1, patch2))
+        
+        # Create the legend on the plot
+        fig.legend(handles=handles, labels=merged_labels, handler_map={tuple: HandlerTuple(ndivide=None)}, 
+                   loc='lower center', bbox_to_anchor=(0.45, -0.16), 
+                   ncol=math.ceil(len(merged_labels) / 2), title="Method", fontsize=10, title_fontsize=10)
     
+        # Create a legend for the random performance lines
+        lines = [Line2D([0], [0], color='grey', linestyle='dashdot', linewidth=1),
+                Line2D([0], [0], color='black', linestyle='--', linewidth=1)]
+        labels = ['Shallow', 'Higher Depth']
+
+        # Add the legend (you can use a different location or bbox_to_anchor for separation)
+        fig.legend(lines, labels, title='Random baseline', 
+                loc='lower center', bbox_to_anchor=(0.1, -0.16), fontsize=10, title_fontsize=10)
+
+    plt.tight_layout()
     # Display the plot
     plt.show()
 

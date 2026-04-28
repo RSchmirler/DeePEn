@@ -50,15 +50,19 @@ def load_results(data, path):
     return merged_df   
 
 # Returns the spearman per depth bin for the depthwise analysis with different training depth
-def calc_spearman_depthwise(path, data, training_end_depth):
-    
+def calc_spearman_depthwise(path, data, training_end_depth, baseline = False):
+  
     starting_depth = training_end_depth + 1
     
     # get cutoff for last depth bin
     cutoff = get_cutoff(data)
     
     # load combined dataframe
-    df_all = load_results(data + "_" + str(training_end_depth), path)
+    if not baseline:
+        df_all = load_results(data + "_" + str(training_end_depth), path)
+    else:  
+        df_all = load_results(data + "_baseline", path)
+        
     # only functional variants
     df = df_all[df_all.DMS_score_bin == 1].copy()
 
@@ -132,8 +136,8 @@ def calc_metric_depth(path, data, metric="AUCPR"):
 
     # Create baseline results or load result dataframes
     if ("random_baseline" in path) or ("perfect_classifier_baseline" in path):
-        # Load the HBI results and strip the result column
-        df_all = load_results(data, "./results/main/HBI")
+        # Load the SBI results and strip the result column
+        df_all = load_results(data, "./results/main/SBI")
         df_all = df_all.loc[:, ~df_all.columns.str.contains('seed')]
         
         random_cols = [] 
