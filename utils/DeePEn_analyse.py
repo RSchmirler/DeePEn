@@ -34,65 +34,68 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
     if colors == None:
         colors = ["slategrey",
                   "#875F59",
-                 "darkgreen",
+                  "darkgreen",
                   "olive",
-                 "orangered",
-                 "firebrick",
+                  "orangered",
+                  "firebrick",
                   "aqua",
                   "royalblue",
-                 "goldenrod",
-                 "darkorange"]
+                  "goldenrod",
+                  "darkorange"]
 
         # Add four more colors in reserve from tab10
-        # Get the `tab10` colormap
         tab10 = plt.get_cmap('tab10')
-        # Extract colors from the `tab10` palette
-        # Each color is represented as an RGBA tuple, you can convert it to hex if needed
         tab10_colors = [tab10(i) for i in range(tab10.N)]
-        # add three more color pairs in reserve
-        colors_to_add = [tab10_colors[i] for i in [4,5,6,8]]
-        # Convert RGBA to hexadecimal format
+        colors_to_add = [tab10_colors[i] for i in [4, 5, 6, 8]]
         colors_to_add_hex = [mcolors.to_hex(color) for color in colors_to_add]
-        # Add these colors to your existing list
         colors.extend(colors_to_add_hex)
     
     colors = colors[:len(methods)]
-    
     names = methods
-    
-    df_metric = []                                                     
+    df_metric = []
 
     for met in metric:
-                                                      
         dfs = []
         dfs_tail = []
-                                                      
-        for m in methods:
 
+        for m in methods:
             if main:
                 path = "./results/main/" + m
             else:
-                path = "./results/SOM/" + m 
+                path = "./results/SOM/" + m
+
             df_concat = pd.DataFrame()
             df_concat_tail = pd.DataFrame()
 
             for d in datas:
-
                 df = calc_metric_depth(path, d, metric=met)
+                seeds = df.iloc[:, 5:-1].columns.tolist()
 
-                seeds = df.iloc[:,5:-1].columns.tolist()
-
-                df_tail = pd.melt(df.tail(max(1,len(df)-6)), id_vars=['depth',  'x'], value_vars=seeds, var_name='Seed', value_name='value')
+                df_tail = pd.melt(
+                    df.tail(max(1, len(df)-6)),
+                    id_vars=['depth', 'x'],
+                    value_vars=seeds,
+                    var_name='Seed',
+                    value_name='value'
+                )
                 df_tail["data"] = d
-                df = pd.melt(df.head(min(len(df)-1, 6)).iloc[1:,:], id_vars=['depth',  'x'], value_vars=seeds, var_name='Seed', value_name='value')            
+
+                df = pd.melt(
+                    df.head(min(len(df)-1, 6)).iloc[1:, :],
+                    id_vars=['depth', 'x'],
+                    value_vars=seeds,
+                    var_name='Seed',
+                    value_name='value'
+                )
                 df["data"] = d
 
-                df_concat = pd.concat([df_concat,df], ignore_index=True)
-                df_concat_tail = pd.concat([df_concat_tail,df_tail], ignore_index=True)
+                df_concat = pd.concat([df_concat, df], ignore_index=True)
+                df_concat_tail = pd.concat([df_concat_tail, df_tail], ignore_index=True)
 
             dfs.append(df_concat)
             dfs_tail.append(df_concat_tail)
-        df_metric.append((dfs,dfs_tail))
+
+        df_metric.append((dfs, dfs_tail))
 
     if sorted(datas) == sorted(['CAPSD_AAV2S_Sinai_2021', 'GFP_AEQVI_Sarkisyan_2016', 'HIS7_YEAST_Pokusaeva_2019', 'PHOT_CHLRE_Chen_2023']):
         random_baselines = pd.read_csv("./results/main/random_baseline/DeePEn_Table_1_float.csv")
@@ -102,59 +105,97 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
         random_baselines = pd.DataFrame(columns=['method', 'depth'])
 
     # Initialize the figure and subplots
-    fig, axes = plt.subplots(1, len(metric), figsize=(4 * len(metric) , 4),dpi=300) 
-    
+    fig, axes = plt.subplots(1, len(metric), figsize=(2.5 * len(metric) + 1, 0.4 * len(methods)), dpi=300)
+
     offset = 0.15
     width = 0.2
     overall_linewidth = 0.7
-    
-    # Customize the mean line properties
+
     meanprops = {
         'linestyle': '-',
-        'linewidth': overall_linewidth,  # Adjust the width according to your preferences
+        'linewidth': overall_linewidth,
         'color': 'black'
     }
-    # Customize the mean line properties
+
     medianprops = {
         'linestyle': '-',
-        'linewidth': overall_linewidth,  # Adjust the width according to your preferences
+        'linewidth': overall_linewidth,
         'color': 'red',
-        'alpha' : 0.5
+        'alpha': 0.5
     }
 
-                                                      
     for k, met in enumerate(metric):
         if len(metric) == 1:
-            ax = axes 
+            ax = axes
         else:
             ax = axes[k]
-        
-        dfs =  df_metric[k][0]                                             
-        dfs_tail =  df_metric[k][1]
-        
-        if not  met == "spearman_func":
+
+        dfs = df_metric[k][0]
+        dfs_tail = df_metric[k][1]
+
+        # Random baselines become vertical lines
+        if not met == "spearman_func":
             try:
-                ax.axhline(float(random_baselines[random_baselines.method=="random_baseline"][met].iloc[0].split(" ")[0]), color='grey', linestyle='dashdot', linewidth=1)
-                ax.axhline(float(random_baselines[random_baselines.method=="random_baseline"][met].iloc[1].split(" ")[0]), color='black', linestyle='--', linewidth=1)
+                ax.axvline(
+                    float(random_baselines[random_baselines.method == "random_baseline"][met].iloc[0].split(" ")[0]),
+                    color='grey', linestyle='dashdot', linewidth=1
+                )
+                ax.axvline(
+                    float(random_baselines[random_baselines.method == "random_baseline"][met].iloc[1].split(" ")[0]),
+                    color='black', linestyle='--', linewidth=1
+                )
             except (IndexError, KeyError):
                 print(f'random_baselines for metric {met} are missing')
-                
+
         for idx, (df, tail, name, color) in enumerate(zip(dfs, dfs_tail, names, colors)):
-            # Create a boxplot for both subplots
             col = 'value'
 
-            bp0 = ax.boxplot(df[col], positions=[idx-offset], widths=width, patch_artist=True, meanline=True, showmeans=True, meanprops=meanprops, medianprops=medianprops)
-            bp1 = ax.boxplot(tail[col], positions=[idx+offset], widths=width, patch_artist=True, meanline=True, showmeans=True, meanprops=meanprops, medianprops=medianprops)
+            # Horizontal boxplots
+            bp0 = ax.boxplot(
+                df[col],
+                positions=[idx - offset],
+                widths=width,
+                patch_artist=True,
+                meanline=True,
+                showmeans=True,
+                meanprops=meanprops,
+                medianprops=medianprops,
+                vert=False
+            )
+            bp1 = ax.boxplot(
+                tail[col],
+                positions=[idx + offset],
+                widths=width,
+                patch_artist=True,
+                meanline=True,
+                showmeans=True,
+                meanprops=meanprops,
+                medianprops=medianprops,
+                vert=False
+            )
 
-            # Calculate mean and confidence intervals for df['mean_all']
+            # Calculate mean and confidence intervals
             mean_df, ci_df = mean_confidence_interval_individual(df)
             mean_tail, ci_tail = mean_confidence_interval_individual(tail)
 
-            # Overlay error bars with confidence intervals on top of the boxplot
-            ax.errorbar(idx-offset, [mean_df], yerr=[ci_df], color='black', capsize=2, capthick=overall_linewidth, elinewidth=overall_linewidth)
-            ax.errorbar(idx+offset, [mean_tail], yerr=[ci_tail], color='black', capsize=2, capthick=overall_linewidth, elinewidth=overall_linewidth)
+            # Horizontal error bars
+            ax.errorbar(
+                [mean_df], [idx - offset],
+                xerr=[ci_df],
+                color='black',
+                capsize=2,
+                capthick=overall_linewidth,
+                elinewidth=overall_linewidth
+            )
+            ax.errorbar(
+                [mean_tail], [idx + offset],
+                xerr=[ci_tail],
+                color='black',
+                capsize=2,
+                capthick=overall_linewidth,
+                elinewidth=overall_linewidth
+            )
 
-            # Customize the color of each boxplot for both subplots
             color_1 = mcolors.to_rgba(color, alpha=0.25)
             color_2 = mcolors.to_rgba(color, alpha=0.8)
 
@@ -167,26 +208,30 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
             for patch in bp1['boxes']:
                 patch.set(facecolor=color_2)
 
-            plt.setp(bp0["fliers"], markersize=4, markeredgecolor=color_1, markerfacecolor='none',markeredgewidth=overall_linewidth*0.8)    
-            plt.setp(bp1["fliers"], markersize=4, markeredgecolor=color_2, markerfacecolor='none',markeredgewidth=overall_linewidth*0.8)
+            plt.setp(bp0["fliers"], markersize=4, markeredgecolor=color_1,
+                     markerfacecolor='none', markeredgewidth=overall_linewidth*0.8)
+            plt.setp(bp1["fliers"], markersize=4, markeredgecolor=color_2,
+                     markerfacecolor='none', markeredgewidth=overall_linewidth*0.8)
 
+        # x-axis now shows metric values
+        ax.set_xlim(0, 1)
+        ax.set_xticks(np.arange(0, 1.01, 0.2))
+        ax.set_xticklabels([f"{x:.1f}" for x in np.arange(0, 1.01, 0.2)])
+
+
+        # Add vertical grid lines
+        ax.grid(axis='x', linestyle='--', alpha=0.6, linewidth=overall_linewidth)
+
+        # Set y-ticks to model names
+        ax.set_yticks(range(len(names)))
+        if k == 0:
+            ax.set_yticklabels(names)
+        else:
+            ax.set_yticklabels([])
             
-        # Set y-lim
-        ax.set_ylim(0, 1)
-
-        # Add horizontal grid lines
-        ax.grid(axis='y', linestyle='--', alpha=0.7, linewidth=overall_linewidth)
-
-        # Set x-ticks
-        ax.set_xticks(range(len(names)))
-        ax.set_xticklabels(names, rotation=90)
-        
-        # Have y-ticks labels only for the first subplot
-        if k > 0:
-            ax.set_yticklabels([])            
-
+        ax.invert_yaxis()
         ax.set_title(met)
-        
+
     # Create pairs of patches and merged labels
     if colors[0] == "slategrey":
         handles = []
@@ -195,23 +240,35 @@ def plot_multi_model_multi_metric_DeePEn(methods, datas, metric = ["AUCPR","spea
             patch1 = Patch(color=colors[i])
             patch2 = Patch(color=colors[i+1])
             handles.append((patch1, patch2))
-        
-        # Create the legend on the plot
-        fig.legend(handles=handles, labels=merged_labels, handler_map={tuple: HandlerTuple(ndivide=None)}, 
-                   loc='lower center', bbox_to_anchor=(0.45, -0.16), 
-                   ncol=math.ceil(len(merged_labels) / 2), title="Method", fontsize=10, title_fontsize=10)
-    
-        # Create a legend for the random performance lines
-        lines = [Line2D([0], [0], color='grey', linestyle='dashdot', linewidth=1),
-                Line2D([0], [0], color='black', linestyle='--', linewidth=1)]
+
+        fig.legend(
+            handles=handles,
+            labels=merged_labels,
+            handler_map={tuple: HandlerTuple(ndivide=None)},
+            loc='lower center',
+            bbox_to_anchor=(0.65, -0.16),
+            ncol=math.ceil(len(merged_labels) / 2),
+            title="Method",
+            fontsize=10,
+            title_fontsize=10
+        )
+
+        lines = [
+            Line2D([0], [0], color='darkgrey', linestyle='dashdot', linewidth=1),
+            Line2D([0], [0], color='black', linestyle='--', linewidth=1)
+        ]
         labels = ['Shallow', 'Higher Depth']
 
-        # Add the legend (you can use a different location or bbox_to_anchor for separation)
-        fig.legend(lines, labels, title='Random baseline', 
-                loc='lower center', bbox_to_anchor=(0.1, -0.16), fontsize=10, title_fontsize=10)
+        fig.legend(
+            lines, labels,
+            title='Random baseline',
+            loc='lower center',
+            bbox_to_anchor=(0.1, -0.16),
+            fontsize=10,
+            title_fontsize=10
+        )
 
     plt.tight_layout()
-    # Display the plot
     plt.show()
 
 # creates results in a df for chosen models and metrics for chosen DeePEn datasets
